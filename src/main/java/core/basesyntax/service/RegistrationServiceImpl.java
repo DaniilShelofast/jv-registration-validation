@@ -6,7 +6,18 @@ import core.basesyntax.exception.RegistrationException;
 import core.basesyntax.model.User;
 
 public class RegistrationServiceImpl implements RegistrationService {
+
+    static final Integer MIN_AGE;
+    static final Integer MIN_LOGIN_LENGTH;
+    static final Integer MIN_PASSWORD_LENGTH;
+
     private final StorageDao storageDao = new StorageDaoImpl();
+
+    static {
+        MIN_AGE = 18;
+        MIN_LOGIN_LENGTH = 6;
+        MIN_PASSWORD_LENGTH = 6;
+    }
 
     @Override
     public User register(User user) {
@@ -25,23 +36,34 @@ public class RegistrationServiceImpl implements RegistrationService {
     }
 
     private boolean checkCountSymbolLogin(User user) {
-        if (user.getLogin().length() < 6) {
-            throw new RegistrationException("");
+        if (user.getLogin() == null) {
+            throw new RegistrationException("Login can't be null");
+        }
+        if (user.getLogin().length() < MIN_LOGIN_LENGTH) {
+            throw new RegistrationException(user.getLogin()
+                    + " length is too short, at least 6 characters.");
         }
         return true;
     }
 
     private boolean checkCountSymbolPassword(User user) {
-        if (user.getPassword().length() < 6) {
-            throw new RegistrationException("");
+        if (user.getPassword() == null) {
+            throw new RegistrationException("Password can't be null");
+        }
+        if (user.getPassword().length() < MIN_PASSWORD_LENGTH) {
+            throw new RegistrationException(user.getPassword()
+                    + " length is too short, at least 6 characters.");
         }
         return true;
     }
 
     private boolean checkAgeUser(User user) {
-        int ageMin = 18;
-        if (user.getAge() < ageMin) {
-            throw new RegistrationException("");
+        if (user.getAge() == null) {
+            throw new RegistrationException("Age can't be null");
+        }
+        if (user.getAge() < MIN_AGE) {
+            throw new RegistrationException(user.getAge()
+                    + " too young, from the age of 18.");
         }
         return true;
     }

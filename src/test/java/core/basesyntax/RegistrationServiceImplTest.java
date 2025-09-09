@@ -1,149 +1,162 @@
 package core.basesyntax;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import core.basesyntax.db.Storage;
 import core.basesyntax.exception.RegistrationException;
 import core.basesyntax.model.User;
+import core.basesyntax.service.RegistrationService;
+import core.basesyntax.service.RegistrationServiceImpl;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class RegistrationServiceImplTest {
 
-    private User user;
-    private String login;
-    private Integer loginLength;
-    private String password;
-    private Integer passwordLength;
-    private Integer age;
+    private static RegistrationService service;
+
+    @BeforeAll
+    static void beforeAll() {
+        service = new RegistrationServiceImpl();
+    }
 
     @BeforeEach
     void setUp() {
-        user = new User();
-        if (user.getLogin() != null) {
-            login = user.getLogin();
-            loginLength = user.getLogin().length();
-        }
-        if (user.getPassword() != null) {
-            password = user.getPassword();
-            passwordLength = user.getPassword().length();
-        }
-        if (user.getAge() != null) {
-            age = user.getAge();
-        }
+        Storage.people.clear();
     }
 
     @Test
     void register_userNotNull_Ok() {
-        assertNotNull(user, "User is invalid!");
+        User u = new User("121212", "323123", 43);
+        assertNotNull(service.register(u), "User is invalid!");
     }
 
     @Test
-    void register_loginNotNull_Ok() {
-        if (login != null) {
-            assertNotNull(login, "login is invalid!");
-        }
+    void register_userNull_notOk() {
+        User u = new User(null, null, null);
+        assertThrows(RegistrationException.class, () -> {
+            service.register(u);
+        });
+
+    }
+
+    @Test
+    void register_userNotEmpty_notOk() {
+        User u = new User("", "", 0);
+        assertThrows(RegistrationException.class, () -> {
+            service.register(u);
+        });
+
+    }
+
+    @Test
+    void register_loginNull_notOk() {
+        User u = new User(null, "323123", 34);
+        assertThrows(RegistrationException.class, () -> {
+            service.register(u);
+        });
+
     }
 
     @Test
     void register_loginNotEmpty_Ok() {
-        if (login != null) {
-            assertFalse(login.isBlank(), "login is empty");
-        }
-    }
-
-    @Test
-    void register_lengthLogin_notOk() {
+        User u = new User(" ", "323123", 34);
         assertThrows(RegistrationException.class, () -> {
-            if (loginLength == null) {
-                throw new RegistrationException("error length not null");
-            }
-            if (loginLength < 6) {
-                throw new RegistrationException("error login should be more.");
-            }
+            service.register(u);
         });
     }
 
     @Test
-    void register_lengthLoginNotZero_notOk() {
+    void register_loginLength3_notOk() {
+        User u = new User("642", "н53453", 34);
         assertThrows(RegistrationException.class, () -> {
-            if (loginLength == null) {
-                throw new RegistrationException("error length not null");
-            }
-            if (loginLength == 0) {
-                throw new RegistrationException("error login should be more.");
-            }
+            service.register(u);
         });
     }
 
     @Test
-    void register_passwordNotNull_Ok() {
-        if (password != null) {
-            assertNotNull(password, "password is invalid!");
-        }
+    void register_loginLength6_Ok() {
+        User u = new User("642434", "323123", 34);
+        assertNotNull(service.register(u), "User should be registered successfully");
+    }
+
+    @Test
+    void register_loginLengthGreater6_Ok() {
+        User u = new User("6424345454", "323123", 34);
+        assertNotNull(service.register(u), "User should be registered successfully");
+    }
+
+    @Test
+    void register_passwordNull_notOk() {
+        User u = new User("6345334", null, 34);
+        assertThrows(RegistrationException.class, () -> {
+            service.register(u);
+        });
+
+    }
+
+    @Test
+    void register_passwordLength0_notOk() {
+        User u = new User("642434", "", 34);
+        assertThrows(RegistrationException.class, () -> {
+            service.register(u);
+        });
     }
 
     @Test
     void register_passwordNotEmpty_Ok() {
-        if (password != null) {
-            assertFalse(password.isBlank(), "password is empty");
-        }
-    }
-
-    @Test
-    void register_lengthPassword_notOk() {
+        User u = new User("642434", " ", 34);
         assertThrows(RegistrationException.class, () -> {
-            if (passwordLength == null) {
-                throw new RegistrationException("error length not null");
-            }
-            if (passwordLength < 6) {
-                throw new RegistrationException("error password should be more.");
-            }
+            service.register(u);
         });
     }
 
     @Test
-    void register_lengthPasswordNotZero_notOk() {
+    void register_passwordLength3_notOk() {
+        User u = new User("642434", "321", 34);
         assertThrows(RegistrationException.class, () -> {
-            if (passwordLength == null) {
-                throw new RegistrationException("error length not null");
-            }
-            if (passwordLength == 0) {
-                throw new RegistrationException("error password should be more.");
-            }
+            service.register(u);
         });
+    }
+
+    @Test
+    void register_passwordLength6_Ok() {
+        User u = new User("642434", "323123", 34);
+        assertNotNull(service.register(u), "User should be registered successfully");
+    }
+
+    @Test
+    void register_passwordLengthGreater6_Ok() {
+        User u = new User("6424345454", "32312geg3", 34);
+        assertNotNull(service.register(u), "User should be registered successfully");
     }
 
     @Test
     void register_userAgeNotNull_Ok() {
-        if (age != null) {
-            assertNotNull(age, "Age is invalid.");
-        }
+        User u = new User("6424345454", "32312geg3", 34);
+        assertNotNull(service.register(u), "User should be registered successfully");
+    }
+
+    @Test
+    void register_userAgeAdmissible_Ok() {
+        User u = new User("6424345454", "32312geg3", 18);
+        assertNotNull(service.register(u), "User should be registered successfully");
     }
 
     @Test
     void register_userAge_notOk() {
+        User u = new User("642434", "324341", null);
         assertThrows(RegistrationException.class, () -> {
-            if (age == null) {
-                throw new RegistrationException("error age not null");
-            }
-            if (age < 18) {
-                throw new RegistrationException("error age be more");
-            }
+            service.register(u);
         });
     }
 
     @Test
     void register_userAgeZero_notOk() {
+        User u = new User("642434", "324341", 0);
         assertThrows(RegistrationException.class, () -> {
-            if (age == null) {
-                throw new RegistrationException("error age not null");
-            }
-            if (age == 0) {
-                throw new RegistrationException("error age be more");
-            }
+            service.register(u);
         });
     }
-
 }
