@@ -2,6 +2,7 @@ package core.basesyntax.service;
 
 import core.basesyntax.dao.StorageDao;
 import core.basesyntax.dao.StorageDaoImpl;
+import core.basesyntax.db.Storage;
 import core.basesyntax.exception.RegistrationException;
 import core.basesyntax.model.User;
 
@@ -21,18 +22,16 @@ public class RegistrationServiceImpl implements RegistrationService {
 
     @Override
     public User register(User user) {
-        checkLogin(user);
         checkCountSymbolLogin(user);
         checkCountSymbolPassword(user);
         checkAgeUser(user);
-        return storageDao.add(user);
-    }
-
-    private boolean checkLogin(User loginUser) {
-        if (storageDao.get(loginUser.getLogin()) != null) {
-            throw new RegistrationException("error data with such a login already exists.");
+        for (User u : Storage.people) {
+            if (u.getLogin().equals(user.getLogin())) {
+                throw new RegistrationException("error : " + user.getLogin()
+                        + " with such a login already exists.");
+            }
         }
-        return true;
+        return storageDao.add(user);
     }
 
     private boolean checkCountSymbolLogin(User user) {
@@ -40,8 +39,8 @@ public class RegistrationServiceImpl implements RegistrationService {
             throw new RegistrationException("Login can't be null");
         }
         if (user.getLogin().length() < MIN_LOGIN_LENGTH) {
-            throw new RegistrationException(user.getLogin()
-                    + " length is too short, at least 6 characters.");
+            throw new RegistrationException("Login must be at least "
+                    + MIN_LOGIN_LENGTH + " characters.");
         }
         return true;
     }
@@ -51,8 +50,8 @@ public class RegistrationServiceImpl implements RegistrationService {
             throw new RegistrationException("Password can't be null");
         }
         if (user.getPassword().length() < MIN_PASSWORD_LENGTH) {
-            throw new RegistrationException(user.getPassword()
-                    + " length is too short, at least 6 characters.");
+            throw new RegistrationException("Password must be at least "
+                    + MIN_PASSWORD_LENGTH + " characters.");
         }
         return true;
     }
@@ -62,8 +61,8 @@ public class RegistrationServiceImpl implements RegistrationService {
             throw new RegistrationException("Age can't be null");
         }
         if (user.getAge() < MIN_AGE) {
-            throw new RegistrationException(user.getAge()
-                    + " too young, from the age of 18.");
+            throw new RegistrationException("Not valid age: "
+                    + user.getAge() + ". Min allowed age is " + MIN_AGE + ".");
         }
         return true;
     }

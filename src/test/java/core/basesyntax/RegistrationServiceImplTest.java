@@ -1,8 +1,12 @@
 package core.basesyntax;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import core.basesyntax.dao.StorageDao;
+import core.basesyntax.dao.StorageDaoImpl;
 import core.basesyntax.db.Storage;
 import core.basesyntax.exception.RegistrationException;
 import core.basesyntax.model.User;
@@ -60,7 +64,7 @@ public class RegistrationServiceImplTest {
     }
 
     @Test
-    void register_loginNotEmpty_Ok() {
+    void register_loginNotEmpty_notOk() {
         User u = new User(" ", "323123", 34);
         assertThrows(RegistrationException.class, () -> {
             service.register(u);
@@ -70,6 +74,14 @@ public class RegistrationServiceImplTest {
     @Test
     void register_loginLength3_notOk() {
         User u = new User("642", "н53453", 34);
+        assertThrows(RegistrationException.class, () -> {
+            service.register(u);
+        });
+    }
+
+    @Test
+    void register_loginLength5_notOk() {
+        User u = new User("64231", "н53453", 34);
         assertThrows(RegistrationException.class, () -> {
             service.register(u);
         });
@@ -105,7 +117,7 @@ public class RegistrationServiceImplTest {
     }
 
     @Test
-    void register_passwordNotEmpty_Ok() {
+    void register_passwordNotEmpty_notOk() {
         User u = new User("642434", " ", 34);
         assertThrows(RegistrationException.class, () -> {
             service.register(u);
@@ -121,6 +133,14 @@ public class RegistrationServiceImplTest {
     }
 
     @Test
+    void register_passwordLength5_notOk() {
+        User u = new User("642434", "32331", 34);
+        assertThrows(RegistrationException.class, () -> {
+            service.register(u);
+        });
+    }
+
+    @Test
     void register_passwordLength6_Ok() {
         User u = new User("642434", "323123", 34);
         assertNotNull(service.register(u), "User should be registered successfully");
@@ -128,7 +148,7 @@ public class RegistrationServiceImplTest {
 
     @Test
     void register_passwordLengthGreater6_Ok() {
-        User u = new User("6424345454", "32312geg3", 34);
+        User u = new User("6424345454", "32312geg3", 31);
         assertNotNull(service.register(u), "User should be registered successfully");
     }
 
@@ -145,6 +165,14 @@ public class RegistrationServiceImplTest {
     }
 
     @Test
+    void register_userAge17_notOk() {
+        User u = new User("642434", "321323", 17);
+        assertThrows(RegistrationException.class, () -> {
+            service.register(u);
+        });
+    }
+
+    @Test
     void register_userAge_notOk() {
         User u = new User("642434", "324341", null);
         assertThrows(RegistrationException.class, () -> {
@@ -158,5 +186,24 @@ public class RegistrationServiceImplTest {
         assertThrows(RegistrationException.class, () -> {
             service.register(u);
         });
+    }
+
+    @Test
+    void register_duplicateLoginUser_notOk() {
+        StorageDao storageDao = new StorageDaoImpl();
+        User existingUser = new User("642434", "324341", 21);
+        Storage.people.add(existingUser);
+        User userWithSameLogin = storageDao.get("642434");
+        assertThrows(RegistrationException.class, () -> {
+            service.register(userWithSameLogin);
+        });
+    }
+
+    @Test
+    void register_confirmationUser_notOk() {
+        User u1 = new User("642434", "324341", 21);
+        User u2 = service.register(u1);
+        assertSame(u1, u2, "The returned user should be the same instance as the original user");
+        assertTrue(Storage.people.contains(u1));
     }
 }
