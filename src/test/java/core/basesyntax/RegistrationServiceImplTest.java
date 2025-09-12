@@ -1,6 +1,6 @@
 package core.basesyntax;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -19,10 +19,12 @@ import org.junit.jupiter.api.Test;
 public class RegistrationServiceImplTest {
 
     private static RegistrationService service;
+    private static StorageDao dao;
 
     @BeforeAll
     static void beforeAll() {
         service = new RegistrationServiceImpl();
+        dao = new StorageDaoImpl();
     }
 
     @BeforeEach
@@ -32,8 +34,11 @@ public class RegistrationServiceImplTest {
 
     @Test
     void register_userNotNull_Ok() {
-        User u = new User("121212", "323123", 43);
-        assertNotNull(service.register(u), "User is invalid!");
+        User user = new User("121212", "323123", 43);
+        dao.add(user);
+        User u = dao.get(user.getLogin());
+        assertEquals(u, user);
+        assertTrue(Storage.people.contains(user));
     }
 
     @Test
@@ -89,14 +94,20 @@ public class RegistrationServiceImplTest {
 
     @Test
     void register_loginLength6_Ok() {
-        User u = new User("642434", "323123", 34);
-        assertNotNull(service.register(u), "User should be registered successfully");
+        User user = new User("121212", "323123", 43);
+        dao.add(user);
+        User u = dao.get(user.getLogin());
+        assertEquals(u, user);
+        assertTrue(Storage.people.contains(user));
     }
 
     @Test
     void register_loginLengthGreater6_Ok() {
-        User u = new User("6424345454", "323123", 34);
-        assertNotNull(service.register(u), "User should be registered successfully");
+        User user = new User("12121242342", "3231232425", 43);
+        dao.add(user);
+        User u = dao.get(user.getLogin());
+        assertEquals(u, user);
+        assertTrue(Storage.people.contains(user));
     }
 
     @Test
@@ -142,26 +153,38 @@ public class RegistrationServiceImplTest {
 
     @Test
     void register_passwordLength6_Ok() {
-        User u = new User("642434", "323123", 34);
-        assertNotNull(service.register(u), "User should be registered successfully");
+        User user = new User("121212", "323123", 43);
+        dao.add(user);
+        User u = dao.get(user.getLogin());
+        assertEquals(u, user);
+        assertTrue(Storage.people.contains(user));
     }
 
     @Test
     void register_passwordLengthGreater6_Ok() {
-        User u = new User("6424345454", "32312geg3", 31);
-        assertNotNull(service.register(u), "User should be registered successfully");
+        User user = new User("12121254545", "32312343242", 43);
+        dao.add(user);
+        User u = dao.get(user.getLogin());
+        assertEquals(u, user);
+        assertTrue(Storage.people.contains(user));
     }
 
     @Test
     void register_userAgeNotNull_Ok() {
-        User u = new User("6424345454", "32312geg3", 34);
-        assertNotNull(service.register(u), "User should be registered successfully");
+        User user = new User("2625465236342", "2t2tr22r32", 34);
+        dao.add(user);
+        User u = dao.get(user.getLogin());
+        assertSame(u, user);
+        assertTrue(Storage.people.contains(user));
     }
 
     @Test
     void register_userAgeAdmissible_Ok() {
-        User u = new User("6424345454", "32312geg3", 18);
-        assertNotNull(service.register(u), "User should be registered successfully");
+        User user = new User("2625465236342", "2t2tr22r32", 18);
+        dao.add(user);
+        User u = dao.get(user.getLogin());
+        assertEquals(user, u);
+        assertTrue(dao.get(user.getLogin()) != null);
     }
 
     @Test
@@ -189,18 +212,25 @@ public class RegistrationServiceImplTest {
     }
 
     @Test
+    void register_userAgeNegative_notOk() {
+        User u = new User("642434", "324341", -1);
+        assertThrows(RegistrationException.class, () -> {
+            service.register(u);
+        });
+    }
+
+    @Test
     void register_duplicateLoginUser_notOk() {
-        StorageDao storageDao = new StorageDaoImpl();
         User existingUser = new User("642434", "324341", 21);
         Storage.people.add(existingUser);
-        User userWithSameLogin = storageDao.get("642434");
+        User userWithSameLogin = dao.get("642434");
         assertThrows(RegistrationException.class, () -> {
             service.register(userWithSameLogin);
         });
     }
 
     @Test
-    void register_confirmationUser_notOk() {
+    void register_confirmationUser_Ok() {
         User u1 = new User("642434", "324341", 21);
         User u2 = service.register(u1);
         assertSame(u1, u2, "The returned user should be the same instance as the original user");
