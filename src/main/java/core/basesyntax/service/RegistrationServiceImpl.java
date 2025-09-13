@@ -7,9 +7,9 @@ import core.basesyntax.model.User;
 
 public class RegistrationServiceImpl implements RegistrationService {
 
-    static final Integer MIN_AGE;
-    static final Integer MIN_LOGIN_LENGTH;
-    static final Integer MIN_PASSWORD_LENGTH;
+    private static final Integer MIN_AGE;
+    private static final Integer MIN_LOGIN_LENGTH;
+    private static final Integer MIN_PASSWORD_LENGTH;
 
     private final StorageDao storageDao = new StorageDaoImpl();
 
@@ -24,9 +24,9 @@ public class RegistrationServiceImpl implements RegistrationService {
         if (user == null) {
             throw new RegistrationException("Error : the user cannot be null.");
         }
-        checkCountSymbolLogin(user);
-        checkCountSymbolPassword(user);
-        checkAgeUser(user);
+        validateLogin(user);
+        validatePassword(user);
+        validateAge(user);
 
         if (storageDao.get(user.getLogin()) != null) {
             throw new RegistrationException("User with login '"
@@ -35,7 +35,7 @@ public class RegistrationServiceImpl implements RegistrationService {
         return storageDao.add(user);
     }
 
-    private boolean checkCountSymbolLogin(User user) {
+    private void validateLogin(User user) {
         if (user.getLogin() == null) {
             throw new RegistrationException("Login can't be null");
         }
@@ -43,10 +43,9 @@ public class RegistrationServiceImpl implements RegistrationService {
             throw new RegistrationException("Login must be at least "
                     + MIN_LOGIN_LENGTH + " characters.");
         }
-        return true;
     }
 
-    private boolean checkCountSymbolPassword(User user) {
+    private void validatePassword(User user) {
         if (user.getPassword() == null) {
             throw new RegistrationException("Password can't be null");
         }
@@ -54,10 +53,9 @@ public class RegistrationServiceImpl implements RegistrationService {
             throw new RegistrationException("Password must be at least "
                     + MIN_PASSWORD_LENGTH + " characters.");
         }
-        return true;
     }
 
-    private boolean checkAgeUser(User user) {
+    private void validateAge(User user) {
         if (user.getAge() == null) {
             throw new RegistrationException("Age can't be null");
         }
@@ -65,6 +63,5 @@ public class RegistrationServiceImpl implements RegistrationService {
             throw new RegistrationException("Not valid age: "
                     + user.getAge() + ". Min allowed age is " + MIN_AGE + ".");
         }
-        return true;
     }
 }
